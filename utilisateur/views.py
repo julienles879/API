@@ -3,30 +3,52 @@ from rest_framework.response import Response
 from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
+from api.utils import *
 
 
-from authentification.utils import *
+from api.utils import *
+
+
+db_connexion = DatabaseConnexion()
+
 
 class UtilisateurListeView(APIView):
     def get(self, request):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+            print(token)
 
             utilisateur_id, username = validate_jwt_token(token)
+
             if utilisateur_id is not None:
-                with connection.cursor() as cursor:
+
+                print(utilisateur_id)
+                print("avant")
+
+                with db_connexion.connection.cursor() as cursor:
+                    
+                    print(db_connexion)
+
                     cursor.execute("SELECT id, username, email FROM utilisateur")
                     result = cursor.fetchall()
 
+                    print('cursor : ', cursor)
+                    print(result)
                 users = []
+
                 for row in result:
+
                     user_info = {
-                        'id': row[0],
-                        'username': row[1],
-                        'email': row[2],
+                        'id': row['id'],
+                        'username': row['username'],
+                        'email': row['email'],
                     }
+
+                    print('users : ',users)
                     users.append(user_info)
 
+
+                print("apres")
                 return Response({'users': users}, status=status.HTTP_200_OK)
             else:
                 error_response = {
@@ -38,13 +60,15 @@ class UtilisateurListeView(APIView):
             error_response = {
                 'error': str(e)
             }
+            print(error_response)
             return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
         except Exception as e:
             error_response = {
                 'error': str(e)
             }
+            print(error_response)
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

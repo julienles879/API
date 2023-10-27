@@ -4,7 +4,8 @@ from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
 
-from authentification.utils import *
+from api.utils import *
+
 
 
 class MessageCreationView(APIView):
@@ -66,9 +67,9 @@ class MessageHistoriqueView(APIView):
                 messages = []
                 for row in result:
                     message_info = {
-                        'id': row[0],
-                        'date': row[1],
-                        'text': row[2],
+                        'id': result['id'],
+                        'date': result['date'],
+                        'text': result['text'],
                     }
                     messages.append(message_info)
 
@@ -98,9 +99,9 @@ class MessageDernierView(APIView):
 
                 if result:
                     dernier_message = {
-                        'id': result[0],
-                        'date': result[1],
-                        'text': result[2],
+                        'id': result['id'],
+                        'date': result['date'],
+                        'text': result['text'],
                     }
                     return Response({'dernier_message': dernier_message}, status=status.HTTP_200_OK)
                 else:

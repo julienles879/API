@@ -6,7 +6,8 @@ from rest_framework import status
 from django.db import connection
 
 import json
-from .utils import *
+from api.utils import *
+
 
 
 class UtilisateurCreationView(APIView):

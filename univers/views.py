@@ -4,7 +4,7 @@ from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
 
-from authentification.utils import *
+from api.utils import *
 
 
 class UniversCreationView(APIView):
@@ -18,10 +18,11 @@ class UniversCreationView(APIView):
                 description = data.get('description')
                 imagePathUrl = data.get('imagePathUrl')
 
+                print('name : ', name)
                 with connection.cursor() as cursor:
                     cursor.execute("INSERT INTO univers (name, description, imagePathUrl, id_utilisateur) VALUES (%s, %s, %s, %s)",
                                    [name, description, imagePathUrl, utilisateur_id])
-
+                print('cursor : ', cursor)
                 response_data = {
                     'message': 'Univers créé avec succès'
                 }
@@ -46,13 +47,12 @@ class UniversCreationView(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
-
 class UniversListeView(APIView):
     def get(self, request):
         try:
-            utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
+            token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+            utilisateur_id = validate_jwt_token(token)
             if utilisateur_id is not None:
-
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, name, description, imagePathUrl, id_utilisateur FROM univers")
                     result = cursor.fetchall()
@@ -69,35 +69,28 @@ class UniversListeView(APIView):
                     univers_list.append(univers_info)
 
                 return Response({'univers': univers_list}, status=status.HTTP_200_OK)
-
             else:
                 error_response = {
                     'error': 'Token invalide'
                 }
                 return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
         except (DecodeError, ExpiredSignatureError) as e:
             error_response = {
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
         except Exception as e:
             error_response = {
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
-        
 
 class UniversDetailView(APIView):
     def get(self, request, univers_id):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut accéder au détail de l'univers
 
-                # Exécutez une requête SQL pour récupérer les détails de l'univers
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, name, description, imagePathUrl, id_utilisateur FROM univers WHERE id = %s", [univers_id])
                     result = cursor.fetchone()
@@ -136,22 +129,18 @@ class UniversDetailView(APIView):
 class UniversModifView(APIView):
     def put(self, request, univers_id):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut modifier l'univers
 
-                data = request.data  # Utilisez request.data pour récupérer les données de la requête au format JSON
+                data = request.data
                 name = data.get('name')
                 description = data.get('description')
                 imagePathUrl = data.get('imagePathUrl')
 
-                # Exécutez une requête SQL pour mettre à jour l'univers dans la base de données
                 with connection.cursor() as cursor:
                     cursor.execute("UPDATE univers SET name = %s, description = %s, imagePathUrl = %s WHERE id = %s AND id_utilisateur = %s",
                                    [name, description, imagePathUrl, univers_id, utilisateur_id])
 
-                # Vérifiez si l'univers a été modifié avec succès
                 if cursor.rowcount > 0:
                     return Response({'message': 'Univers modifié avec succès'}, status=status.HTTP_200_OK)
                 else:
@@ -176,30 +165,16 @@ class UniversModifView(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)        
         
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from jwt.exceptions import DecodeError, ExpiredSignatureError
-from django.db import connection
-
-from authentification.utils import *
-
-# Importez votre fonction `validate_jwt_token` depuis l'extrait de code que vous avez fourni.
-
 class UniversSuppView(APIView):
     def delete(self, request, univers_id):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut supprimer l'univers
-
-                # Exécutez une requête SQL pour supprimer l'univers de la base de données
+               
                 with connection.cursor() as cursor:
                     cursor.execute("DELETE FROM univers WHERE id = %s AND id_utilisateur = %s",
                                    [univers_id, utilisateur_id])
 
-                # Vérifiez si l'univers a été supprimé avec succès
                 if cursor.rowcount > 0:
                     return Response({'message': 'Univers supprimé avec succès'}, status=status.HTTP_200_OK)
                 else:
@@ -222,3 +197,4 @@ class UniversSuppView(APIView):
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+  

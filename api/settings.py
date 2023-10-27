@@ -13,9 +13,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 
 import environ 
+from decouple import Config, Csv
 
 env = environ.Env()
 environ.Env.read_env()
+config = Config('/.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-iwroy-l4b%@+a(6#$d-yr_fa(@4$2tt^0c!1i3oaf)cq-@&=z#'
+
+SECRET_KEY = config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -87,12 +90,12 @@ WSGI_APPLICATION = 'api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': env('DATABASES_ENGINE'),
         'NAME': env('DATABASES_NAME'),
         'USER' : env('DATABASES_USER'),
         'PASSWORD' : env('DATABASES_PASSWORD'),
-        'HOST' : '127.0.0.1',
-        'PORT' : '3306',
+        'HOST' : env('DATABASES_HOST'),
+        'PORT' : env('DATABASES_PORT'),
     }
 }
 

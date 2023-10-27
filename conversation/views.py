@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
+from api.utils import *
 
-from authentification.utils import *
 
 
 class ConversationCreationView(APIView):
@@ -64,13 +64,13 @@ class ConversationListeView(APIView):
                 conversations = []
                 for row in result:
                     conversation_info = {
-                        'id': row[0],
-                        'name': row[1],
-                        'description': row[2],
-                        'imgUrl': row[3],
-                        'id_personnage': row[4],
-                        'id_utilisateur': row[5],
-                        'id_univers': row[6]
+                        'id': row['id'],
+                        'name': row['name'],
+                        'description': row['description'],
+                        'imgUrl': row['imgUrl'],
+                        'id_personnage': row['id_personnage'],
+                        'id_utilisateur': row['id_utilisateur'],
+                        'id_univers': row['id_univers']
                     }
                     conversations.append(conversation_info)
 
@@ -144,15 +144,15 @@ class ConversationDetailView(APIView):
                 if result:
                     if result[5] == utilisateur_id:
                         conversation_info = {
-                            'id': result[0],
-                            'name': result[1],
-                            'description': result[2],
-                            'imgUrl': result[3],
-                            'id_personnage': result[4],
-                            'id_utilisateur': result[5],
-                            'id_univers': result[6],
-                            'personnage_name': result[7],
-                            'univers_name': result[8]
+                            'id': result['id'],
+                            'name': result['name'],
+                            'description': result['description'],
+                            'imgUrl': result['imgUrl'],
+                            'id_personnage': result['id_personnage'],
+                            'id_utilisateur': result['id_utilisateur'],
+                            'id_univers': result['id_univers'],
+                            'personnage_name': result['personnage_name'],
+                            'univers_name': result['univers_name']
                         }
                         return Response({'conversation': conversation_info}, status=status.HTTP_200_OK)
                     else:

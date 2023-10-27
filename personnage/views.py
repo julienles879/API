@@ -4,7 +4,7 @@ from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
 
-from authentification.utils import *
+from api.utils import *
 
 
 class PersonnageCreationView(APIView):
@@ -68,10 +68,10 @@ class PersonnageListeView(APIView):
                 personnages = []
                 for row in result:
                     personnage_info = {
-                        'id': row[0],
-                        'name': row[1],
-                        'description': row[2],
-                        'imagePathUrl': row[3]
+                        'id': row['id'],
+                        'name': row['name'],
+                        'description': row['description'],
+                        'imagePathUrl': row['imagePathUrl']
                     }
                     print(personnage_info)
                     personnages.append(personnage_info)
