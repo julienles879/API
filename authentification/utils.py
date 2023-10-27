@@ -3,11 +3,10 @@ from decouple import Config
 import os
 import jwt
 
-# Obtenez le chemin absolu vers le fichier .env
 current_directory = os.path.dirname(os.path.abspath(__file__))
 env_file_path = os.path.join(current_directory, '.env')
 
-config = Config(env_file_path)  # Utilisez le chemin absolu
+config = Config(env_file_path)  
 
 def generate_jwt_token(utilisateur_id, username):
     secret_key = config('SECRET_KEY')

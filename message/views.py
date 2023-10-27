@@ -6,26 +6,22 @@ from django.db import connection
 
 from authentification.utils import *
 
-# Importez votre fonction `validate_jwt_token` depuis l'extrait de code que vous avez fourni.
 
 class MessageCreationView(APIView):
     def post(self, request, id_conversation):
         try:
-            # Validez le jeton JWT de l'utilisateur
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                data = request.data  # Utilisez request.data pour récupérer les données de la requête au format JSON
+                data = request.data
 
                 date = data.get('date')
                 text = data.get('text')
                 id_conversation = data.get('id_conversation')
 
                 with connection.cursor() as cursor:
-                    # Exécutez une requête SQL pour insérer le message dans la base de données
                     cursor.execute("INSERT INTO message (date, text, id_conversation) VALUES (%s, %s, %s)",
                                    [date, text, id_conversation])
 
-                    # Récupérez l'ID du message nouvellement créé
                     message_id = cursor.lastrowid
 
                 response_data = {
@@ -60,10 +56,8 @@ class MessageCreationView(APIView):
 class MessageHistoriqueView(APIView):
     def get(self, request, id_conversation):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut accéder à l'historique des messages
 
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, date, text FROM message WHERE id_conversation = %s", [id_conversation])
@@ -95,10 +89,8 @@ class MessageHistoriqueView(APIView):
 class MessageDernierView(APIView):
     def get(self, request, id_conversation):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut accéder au dernier message de la conversation
 
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, date, text FROM message WHERE id_conversation = %s ORDER BY date DESC LIMIT 1", [id_conversation])

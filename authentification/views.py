@@ -18,15 +18,12 @@ class UtilisateurCreationView(APIView):
             password = data.get('password')
             email = data.get('email')
 
-            # Exécutez une requête SQL pour insérer l'utilisateur dans la base de données
             with connection.cursor() as cursor:
                 cursor.execute("INSERT INTO utilisateur (username, password, email) VALUES (%s, %s, %s)",
                                [username, make_password(password), email])
 
-                # Récupérez l'ID de l'utilisateur nouvellement créé
                 utilisateur_id = cursor.lastrowid
 
-            # Générez un jeton JWT avec l'ID de l'utilisateur
             token = generate_jwt_token(utilisateur_id, username)
 
             response_data = {
@@ -53,7 +50,6 @@ class UtilisateurConnexionView(APIView):
             username = data.get('username')
             password = data.get('password')
 
-            # Exécutez  requête SQL 
             with connection.cursor() as cursor:
                 cursor.execute("SELECT id, password FROM utilisateur WHERE username = %s", [username])
                 result = cursor.fetchone()
@@ -61,7 +57,6 @@ class UtilisateurConnexionView(APIView):
                 if result and check_password(password, result[1]):
                     utilisateur_id = result[0]
 
-                    # Générez un jeton JWT avec l'ID de l'utilisateur
                     token = generate_jwt_token(utilisateur_id, username)
 
                     response_data = {

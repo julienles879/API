@@ -10,17 +10,14 @@ from authentification.utils import *
 class UniversCreationView(APIView):
     def post(self, request):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut créer un univers
 
-                data = request.data  # Utilisez request.data pour récupérer les données de la requête au format JSON
+                data = request.data  
                 name = data.get('name')
                 description = data.get('description')
                 imagePathUrl = data.get('imagePathUrl')
 
-                # Exécutez une requête SQL pour insérer l'univers dans la base de données
                 with connection.cursor() as cursor:
                     cursor.execute("INSERT INTO univers (name, description, imagePathUrl, id_utilisateur) VALUES (%s, %s, %s, %s)",
                                    [name, description, imagePathUrl, utilisateur_id])
@@ -53,17 +50,13 @@ class UniversCreationView(APIView):
 class UniversListeView(APIView):
     def get(self, request):
         try:
-            # Validez le jeton JWT
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
             if utilisateur_id is not None:
-                # L'utilisateur authentifié peut accéder à la liste des univers
 
-                # Exécutez une requête SQL pour récupérer la liste des univers
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, name, description, imagePathUrl, id_utilisateur FROM univers")
                     result = cursor.fetchall()
 
-                # Construisez la liste des univers
                 univers_list = []
                 for row in result:
                     univers_info = {
