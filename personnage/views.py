@@ -10,6 +10,7 @@ import openai
 import os
 import environ 
 import requests
+import json
 
 env = environ.Env()
 environ.Env.read_env()
@@ -20,20 +21,22 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
 class PersonnageCreationView(APIView):
-    def post(self, request):
+    def post(self, request, univers_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
 
             if utilisateur_id is not None:
-                data = request.data  
+                data = json.loads(request.body.decode('utf-8'))
                 name = data.get('name')
 
                 # Utilisez ChatGPT pour générer une description du personnage
                 description = generate_character_description(name)
 
-                # Utilisez ClipDrop pour générer l'image du personnage
-                clipdrop_api_key = os.getenv("SD_API_KEY")
-                prompt = f"shot of {name} character"
+                # Utilisez ChatGPT pour générer un résumé de la description
+                summary = generate_summary(name, description)
+
+                # Utilisez ClipDrop pour générer l'image du personnage avec le prompt
+                prompt = f"shot of {name} character with the following summary: {summary}"
                 r = requests.post('https://clipdrop-api.co/text-to-image/v1',
                                   files={
                                       'prompt': (None, prompt, 'text/plain')
@@ -42,7 +45,7 @@ class PersonnageCreationView(APIView):
                 )
 
                 if r.ok:
-                    # r.content contient les données de l'image générée
+                    # Le reste de votre code pour enregistrer l'image, enregistrer le chemin, etc.
                     image_data = r.content
 
                     # Enregistrez l'image sur le serveur avec un nom unique
@@ -52,16 +55,15 @@ class PersonnageCreationView(APIView):
 
                     imagePathUrl = image_path
 
-                    id_univers = data.get('id_univers')  # Assurez-vous de récupérer l'ID de l'univers approprié
-
                     with connection.cursor() as cursor:
                         cursor.execute("INSERT INTO personnage (name, description, imagePathUrl, id_univers) VALUES (%s, %s, %s, %s)",
-                                       [name, description, imagePathUrl, id_univers])
+                                       [name, description, imagePathUrl, univers_id])
 
                     # Répondez avec un message de succès et les informations du personnage créé
                     response_data = {
                         'message': 'Personnage créé avec succès',
                         'description': description,
+                        'summary': summary,
                         'imagePathUrl': imagePathUrl
                     }
                     return Response(response_data, status=status.HTTP_201_CREATED)
@@ -87,7 +89,7 @@ def generate_character_description(character_name):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an expert in creating character descriptions."},
-            {"role": "user", "content": f"Generate a description for the character {character_name}, less than 1000 characters."}
+            {"role": "user", "content": f"Generate a description for the character {character_name}"}
         ]
     )
 
@@ -95,6 +97,22 @@ def generate_character_description(character_name):
     description = response.choices[0].message['content']
 
     return description
+
+def generate_summary(name, description):
+    # Utilisez ChatGPT pour générer un résumé
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are an expert in generating character descriptions and summaries."},
+            {"role": "user", "content": f"Generate a summary of the description {description} to create a Text-to-Image prompt for the {name} universe in under 200 characters."}
+        ]
+    )
+    
+    # Récupérez la réponse générée par ChatGPT
+    summary = response.choices[0].message['content']
+
+    return summary
 
 
 
@@ -104,10 +122,7 @@ class PersonnageListeView(APIView):
 
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
 
-            print(utilisateur_id)
-            print(username)
             if utilisateur_id is not None:
-
 
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT id, name, description, imagePathUrl FROM personnage WHERE id_univers = %s", [univers_id])
@@ -121,10 +136,8 @@ class PersonnageListeView(APIView):
                         'description': row['description'],
                         'imagePathUrl': row['imagePathUrl']
                     }
-                    print(personnage_info)
                     personnages.append(personnage_info)
 
-                print(personnages)
                 return Response({'personnages': personnages}, status=status.HTTP_200_OK)
 
             else:

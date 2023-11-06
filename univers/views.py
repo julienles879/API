@@ -28,15 +28,19 @@ class UniversCreationView(APIView):
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
 
             if utilisateur_id is not None:
-                # Récupérez le nom de l'univers à partir des données de la requête
+                # Récupérez le nom de l'univers et la description à partir des données de la requête
                 data = json.loads(request.body.decode('utf-8'))
                 name = data.get('name')
 
-                # Utilisez ChatGPT pour générer une description de l'univers
-                description = generate_universe_description(name)
+                description = generate_univers_description(name)
 
-                # Utilisez ClipDrop pour générer l'image
-                prompt = f"shot of {name} universe"
+                # Utilisez ChatGPT pour générer un résumé de la description
+                summary = generate_summary(name, description)
+
+                # Créez un prompt pour générer une image
+                prompt = f"Generate an image of the univers {name} with the following summary: {summary}"
+
+                # Appelez l'API Text-to-Image pour générer l'image
                 r = requests.post('https://clipdrop-api.co/text-to-image/v1',
                                   files={
                                       'prompt': (None, prompt, 'text/plain')
@@ -45,7 +49,7 @@ class UniversCreationView(APIView):
                 )
 
                 if r.ok:
-                    # r.content contient les données de l'image générée
+                    # Le reste de votre code pour enregistrer l'image, enregistrer le chemin, etc.
                     image_data = r.content
 
                     # Enregistrez l'image sur le serveur avec un nom unique
@@ -60,10 +64,12 @@ class UniversCreationView(APIView):
                         cursor.execute("INSERT INTO univers (name, description, imagePathUrl, id_utilisateur) VALUES (%s, %s, %s, %s)",
                                        [name, description, imagePathUrl, utilisateur_id])
 
-                    # Répondez avec un message de succès et la description générée
+                    # Répondez avec un message de succès et le résumé généré
                     response_data = {
                         'message': 'Univers créé avec succès',
-                        'description': description
+                        'description': description,
+                        'summary': summary,
+                        'imagePathUrl': imagePathUrl
                     }
                     return Response(response_data, status=status.HTTP_201_CREATED)
                 else:
@@ -83,20 +89,38 @@ class UniversCreationView(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
-def generate_universe_description(universe_name):
+def generate_univers_description(name):
     # Utilisez ChatGPT pour générer la description
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are an expert in creating descriptions for fictional universes."},
-            {"role": "user", "content": f"Generate a description for the universe {universe_name},  less 1000 characters."}
+            {"role": "system", "content": "You are an expert in creating descriptions for fictional universe."},
+            {"role": "user", "content": f"Generate a description for the universe {name},  less 500 characters."}
         ]
     )
 
     # Récupérez la réponse générée par ChatGPT
     description = response.choices[0].message['content']
-    
+
     return description
+
+
+def generate_summary(name, description):
+    # Utilisez ChatGPT pour générer un résumé
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are an expert with extensive knowledge about the {name} universe"},
+            {"role": "user", "content": f"Generate a summary of the description {description} to create a Text-to-Image prompt for the {name} universe in under 200 characters."}
+        ],
+    )
+    
+    # Récupérez la réponse générée par ChatGPT
+    summary = response.choices[0].message['content']  # Assignez la valeur de summary à la réponse générée par ChatGPT
+
+    return summary
+
 
 
 

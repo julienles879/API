@@ -16,24 +16,21 @@ class UtilisateurListeView(APIView):
     def get(self, request):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
-            print(token)
+            print('token : ', token)
 
             utilisateur_id, username = validate_jwt_token(token)
 
             if utilisateur_id is not None:
 
                 print(utilisateur_id)
-                print("avant")
 
                 with db_connexion.connection.cursor() as cursor:
                     
-                    print(db_connexion)
+
 
                     cursor.execute("SELECT id, username, email FROM utilisateur")
                     result = cursor.fetchall()
 
-                    print('cursor : ', cursor)
-                    print(result)
                 users = []
 
                 for row in result:
@@ -44,11 +41,10 @@ class UtilisateurListeView(APIView):
                         'email': row['email'],
                     }
 
-                    print('users : ',users)
                     users.append(user_info)
 
 
-                print("apres")
+
                 return Response({'users': users}, status=status.HTTP_200_OK)
             else:
                 error_response = {

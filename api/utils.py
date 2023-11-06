@@ -16,7 +16,7 @@ config = Config(env_file_path)
 
 def generate_jwt_token(utilisateur_id, username):
     secret_key = config('SECRET_KEY')
-    print(secret_key)
+
     payload = {
         'utilisateur_id': utilisateur_id,
         'username': username,
@@ -27,9 +27,9 @@ def generate_jwt_token(utilisateur_id, username):
 def validate_jwt_token(token):
     try:
         secret_key = config('SECRET_KEY')
-        print('secret_key : ', secret_key)
+
         payload = jwt.decode(token, secret_key, algorithms=['HS256'])
-        print('payload : ', payload)
+
         utilisateur_id = payload['utilisateur_id']
         username = payload['username']
         print('utilisateur', utilisateur_id, 'username : ', username)
