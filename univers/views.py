@@ -7,45 +7,99 @@ from django.db import connection
 from api.utils import *
 
 
+import openai
+import os
+import json 
+import environ 
+import requests
+
+
+env = environ.Env()
+environ.Env.read_env()
+config = Config('/api/.env')
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+clipdrop_api_key= os.getenv("SD_API_KEY")
+
 class UniversCreationView(APIView):
     def post(self, request):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
+
             if utilisateur_id is not None:
-
-                data = request.data  
+                # Récupérez le nom de l'univers à partir des données de la requête
+                data = json.loads(request.body.decode('utf-8'))
                 name = data.get('name')
-                description = data.get('description')
-                imagePathUrl = data.get('imagePathUrl')
 
-                print('name : ', name)
-                with connection.cursor() as cursor:
-                    cursor.execute("INSERT INTO univers (name, description, imagePathUrl, id_utilisateur) VALUES (%s, %s, %s, %s)",
-                                   [name, description, imagePathUrl, utilisateur_id])
-                print('cursor : ', cursor)
-                response_data = {
-                    'message': 'Univers créé avec succès'
-                }
+                # Utilisez ChatGPT pour générer une description de l'univers
+                description = generate_universe_description(name)
 
-                return Response(response_data, status=status.HTTP_201_CREATED)
+                # Utilisez ClipDrop pour générer l'image
+                prompt = f"shot of {name} universe"
+                r = requests.post('https://clipdrop-api.co/text-to-image/v1',
+                                  files={
+                                      'prompt': (None, prompt, 'text/plain')
+                                  },
+                                  headers={'x-api-key': clipdrop_api_key}
+                )
 
+                if r.ok:
+                    # r.content contient les données de l'image générée
+                    image_data = r.content
+
+                    # Enregistrez l'image sur le serveur avec un nom unique
+                    image_path = f"media/img/univers/{name}.png"  # Utilisez un nom unique basé sur le nom de l'univers
+                    with open(image_path, 'wb') as image_file:
+                        image_file.write(image_data)
+
+                    # Enregistrez le chemin de l'image dans le champ imagePathUrl
+                    imagePathUrl = image_path
+
+                    with connection.cursor() as cursor:
+                        cursor.execute("INSERT INTO univers (name, description, imagePathUrl, id_utilisateur) VALUES (%s, %s, %s, %s)",
+                                       [name, description, imagePathUrl, utilisateur_id])
+
+                    # Répondez avec un message de succès et la description générée
+                    response_data = {
+                        'message': 'Univers créé avec succès',
+                        'description': description
+                    }
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                else:
+                    # Gestion des erreurs en cas d'échec de l'appel à ClipDrop
+                    error_response = {
+                        'error': f'Erreur lors de la génération de l\'image: {r.status_code} - {r.text}'
+                    }
+                    return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 error_response = {
                     'error': 'Token invalide'
                 }
                 return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
-        except (DecodeError, ExpiredSignatureError) as e:
-            error_response = {
-                'error': str(e)
-            }
-            return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
         except Exception as e:
             error_response = {
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+
+def generate_universe_description(universe_name):
+    # Utilisez ChatGPT pour générer la description
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are an expert in creating descriptions for fictional universes."},
+            {"role": "user", "content": f"Generate a description for the universe {universe_name},  less 1000 characters."}
+        ]
+    )
+
+    # Récupérez la réponse générée par ChatGPT
+    description = response.choices[0].message['content']
+    
+    return description
+
+
+
 
 class UniversListeView(APIView):
     def get(self, request):

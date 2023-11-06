@@ -6,48 +6,96 @@ from django.db import connection
 
 from api.utils import *
 
+import openai
+import os
+import environ 
+import requests
+
+env = environ.Env()
+environ.Env.read_env()
+config = Config('/api/.env')
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+clipdrop_api_key= os.getenv("SD_API_KEY")
 
 class PersonnageCreationView(APIView):
     def post(self, request):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
-            if utilisateur_id is not None:
 
+            if utilisateur_id is not None:
                 data = request.data  
                 name = data.get('name')
-                description = data.get('description')
-                imagePathUrl = data.get('imagePathUrl')
-                id_univers = data.get('id_univers')
 
-                with connection.cursor() as cursor:
-                    cursor.execute("INSERT INTO personnage (name, description, imagePathUrl, id_univers) VALUES (%s, %s, %s, %s)",
-                                   [name, description, imagePathUrl, id_univers])
+                # Utilisez ChatGPT pour générer une description du personnage
+                description = generate_character_description(name)
 
-                    personnage_id = cursor.lastrowid
+                # Utilisez ClipDrop pour générer l'image du personnage
+                clipdrop_api_key = os.getenv("SD_API_KEY")
+                prompt = f"shot of {name} character"
+                r = requests.post('https://clipdrop-api.co/text-to-image/v1',
+                                  files={
+                                      'prompt': (None, prompt, 'text/plain')
+                                  },
+                                  headers={'x-api-key': clipdrop_api_key}
+                )
 
-                response_data = {
-                    'message': 'Personnage créé avec succès'
-                }
+                if r.ok:
+                    # r.content contient les données de l'image générée
+                    image_data = r.content
 
-                return Response(response_data, status=status.HTTP_201_CREATED)
+                    # Enregistrez l'image sur le serveur avec un nom unique
+                    image_path = f"media/img/personnages/{name}.png"  # Utilisez un nom unique basé sur le nom du personnage
+                    with open(image_path, 'wb') as image_file:
+                        image_file.write(image_data)
 
+                    imagePathUrl = image_path
+
+                    id_univers = data.get('id_univers')  # Assurez-vous de récupérer l'ID de l'univers approprié
+
+                    with connection.cursor() as cursor:
+                        cursor.execute("INSERT INTO personnage (name, description, imagePathUrl, id_univers) VALUES (%s, %s, %s, %s)",
+                                       [name, description, imagePathUrl, id_univers])
+
+                    # Répondez avec un message de succès et les informations du personnage créé
+                    response_data = {
+                        'message': 'Personnage créé avec succès',
+                        'description': description,
+                        'imagePathUrl': imagePathUrl
+                    }
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                else:
+                    error_response = {
+                        'error': f'Erreur lors de la génération de l\'image: {r.status_code} - {r.text}'
+                    }
+                    return Response(error_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 error_response = {
                     'error': 'Token invalide'
                 }
                 return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
-        except (DecodeError, ExpiredSignatureError) as e:
-            error_response = {
-                'error': str(e)
-            }
-            return Response(error_response, status=status.HTTP_401_UNAUTHORIZED)
-
         except Exception as e:
             error_response = {
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+
+def generate_character_description(character_name):
+    # Utilisez ChatGPT pour générer la description
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are an expert in creating character descriptions."},
+            {"role": "user", "content": f"Generate a description for the character {character_name}, less than 1000 characters."}
+        ]
+    )
+
+    # Récupérez la réponse générée par ChatGPT
+    description = response.choices[0].message['content']
+
+    return description
+
 
 
 class PersonnageListeView(APIView):

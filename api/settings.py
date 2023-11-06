@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!config = Config('/.env')
 
-
+SECRET_KEY = Config('/.env')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
