@@ -25,9 +25,6 @@ class UtilisateurListeView(APIView):
                 print(utilisateur_id)
 
                 with db_connexion.connection.cursor() as cursor:
-                    
-
-
                     cursor.execute("SELECT id, username, email FROM utilisateur")
                     result = cursor.fetchall()
 
@@ -42,8 +39,6 @@ class UtilisateurListeView(APIView):
                     }
 
                     users.append(user_info)
-
-
 
                 return Response({'users': users}, status=status.HTTP_200_OK)
             else:

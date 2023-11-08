@@ -6,6 +6,21 @@ from django.db import connection
 from api.utils import *
 
 
+import openai
+import os
+import environ 
+
+from openai import OpenAI
+
+
+env = environ.Env()
+environ.Env.read_env()
+config = Config('/api/.env')
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+
+
 
 class ConversationCreationView(APIView):
     def post(self, request):
@@ -64,13 +79,13 @@ class ConversationListeView(APIView):
                 conversations = []
                 for row in result:
                     conversation_info = {
-                        'id': row['id'],
-                        'name': row['name'],
-                        'description': row['description'],
-                        'imgUrl': row['imgUrl'],
-                        'id_personnage': row['id_personnage'],
-                        'id_utilisateur': row['id_utilisateur'],
-                        'id_univers': row['id_univers']
+                        'id': row[0],
+                        'name': row[1],
+                        'description': row[2],
+                        'imgUrl': row[3],
+                        'id_personnage': row[4],
+                        'id_utilisateur': row[5],
+                        'id_univers': row[6]
                     }
                     conversations.append(conversation_info)
 
@@ -142,17 +157,17 @@ class ConversationDetailView(APIView):
                     result = cursor.fetchone()
 
                 if result:
-                    if result[5] == utilisateur_id:
+                    if str(result[5]) == str(utilisateur_id):
                         conversation_info = {
-                            'id': result['id'],
-                            'name': result['name'],
-                            'description': result['description'],
-                            'imgUrl': result['imgUrl'],
-                            'id_personnage': result['id_personnage'],
-                            'id_utilisateur': result['id_utilisateur'],
-                            'id_univers': result['id_univers'],
-                            'personnage_name': result['personnage_name'],
-                            'univers_name': result['univers_name']
+                            'id': result[0],
+                            'name': result[1],
+                            'description': result[2],
+                            'imgUrl': result[3],
+                            'id_personnage': result[4],
+                            'id_utilisateur': result[5],
+                            'id_univers': result[6],
+                            'personnage_name': result[7],
+                            'univers_name': result[8]
                         }
                         return Response({'conversation': conversation_info}, status=status.HTTP_200_OK)
                     else:
@@ -176,3 +191,5 @@ class ConversationDetailView(APIView):
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)        
+        
+
