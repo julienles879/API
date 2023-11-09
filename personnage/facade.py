@@ -20,6 +20,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
 class PersonnageFacade:
+    
     @staticmethod
     def create_personnage(request, univers_id, name):
         try:

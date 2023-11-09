@@ -6,7 +6,6 @@ from django.db import connection
 from api.utils import *
 import openai
 import os
-import environ
 
 
 class MessageCreationView(APIView):

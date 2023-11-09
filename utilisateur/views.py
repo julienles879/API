@@ -3,10 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
-from api.utils import *
-
 
 from api.utils import *
+
 
 
 db_connexion = DatabaseConnexion()

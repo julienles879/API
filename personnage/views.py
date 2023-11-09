@@ -21,12 +21,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
+
 class PersonnageCreationView(APIView):
     def post(self, request, univers_id):
         name = json.loads(request.body.decode('utf-8')).get('name')
         response = PersonnageFacade.create_personnage(request, univers_id, name)
         return response
-
 
 
 class PersonnageListeView(APIView):

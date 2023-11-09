@@ -7,7 +7,6 @@ from django.db import connection
 from api.utils import *
 from .facade import *
 
-
 import openai
 import os
 import json 
@@ -29,7 +28,8 @@ class UniversCreationView(APIView):
         name = json.loads(request.body.decode('utf-8')).get('name')
         response = UniversFacade.create_univers(request, name)
         return response
-
+ 
+ 
 class UniversListeView(APIView):
     def get(self, request):
         try:

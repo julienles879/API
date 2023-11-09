@@ -60,4 +60,3 @@ class DatabaseConnexion:
         cursor.execute(query, params)
         self.connection.commit()
         return cursor
-
