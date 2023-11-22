@@ -79,17 +79,32 @@ class PersonnageModifView(APIView):
             if utilisateur_id is not None:
 
                 with connection.cursor() as cursor:
-                    cursor.execute("SELECT id FROM personnage WHERE id = %s AND id_univers = %s", [personnage_id, univers_id])
+                    cursor.execute("SELECT id, name FROM personnage WHERE id = %s AND id_univers = %s", [personnage_id, univers_id])
                     result = cursor.fetchone()
 
                 if result:
                     data = request.data  
                     name = data.get('name')
-                    description = data.get('description')
+                    description = data.get('description')  # Ignorez la description actuelle dans la requête
                     imagePathUrl = data.get('imagePathUrl')
 
                     with connection.cursor() as cursor:
-                        cursor.execute("UPDATE personnage SET name = %s, description = %s, imagePathUrl = %s WHERE id = %s", [name, description, imagePathUrl, personnage_id])
+                        # Vérifier si le nom a été modifié
+                        cursor.execute("SELECT name FROM personnage WHERE id = %s", [personnage_id])
+                        result_name = cursor.fetchone()[0]
+
+                        if result_name != name:
+                            # Si le nom a été modifié, générer une nouvelle description et une nouvelle image
+                            new_description = PersonnageFacade.generate_character_description(name)
+                            new_summary = PersonnageFacade.generate_summary(name, new_description)
+                            new_image_path = PersonnageFacade.generate_and_save_image(name, new_summary)
+
+                            # Mettre à jour le personnage dans la base de données avec la nouvelle description et l'image
+                            cursor.execute("UPDATE personnage SET name = %s, description = %s, imagePathUrl = %s WHERE id = %s",
+                                           [name, new_description, new_image_path, personnage_id])
+                        else:
+                            # Si le nom n'a pas été modifié, ne rien faire pour la description et l'image
+                            pass
 
                     response_data = {
                         'message': 'Personnage modifié avec succès'
@@ -115,6 +130,7 @@ class PersonnageModifView(APIView):
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class PersonnageSuppView(APIView):

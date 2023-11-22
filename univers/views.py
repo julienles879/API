@@ -117,12 +117,32 @@ class UniversModifView(APIView):
 
                 data = request.data
                 name = data.get('name')
-                description = data.get('description')
-                imagePathUrl = data.get('imagePathUrl')
 
                 with connection.cursor() as cursor:
-                    cursor.execute("UPDATE univers SET name = %s, description = %s, imagePathUrl = %s WHERE id = %s AND id_utilisateur = %s",
-                                   [name, description, imagePathUrl, univers_id, utilisateur_id])
+                    # Vérifier si le nom a été modifié
+                    cursor.execute("SELECT name FROM univers WHERE id = %s", [univers_id])
+                    result = cursor.fetchone()
+                    if result and result[0] != name:
+                        # Si le nom a été modifié, autoriser la modification
+                        cursor.execute("UPDATE univers SET name = %s WHERE id = %s AND id_utilisateur = %s",
+                                       [name, univers_id, utilisateur_id])
+
+                        # Générer une nouvelle description
+                        new_description = UniversFacade.generate_univers_description(name)
+
+                        # Générer une nouvelle image
+                        new_summary = UniversFacade.generate_summary(name, new_description)
+                        new_image_path = UniversFacade.generate_and_save_image(name, new_summary)
+
+                        # Mettre à jour l'imagePathUrl dans la base de données
+                        cursor.execute("UPDATE univers SET description = %s, imagePathUrl = %s WHERE id = %s AND id_utilisateur = %s",
+                                       [new_description, new_image_path, univers_id, utilisateur_id])
+
+                        UniversFacade.image_generation_success(new_image_path)
+
+                    else:
+                        # Si le nom n'a pas été modifié, ne rien faire
+                        pass
 
                 if cursor.rowcount > 0:
                     return Response({'message': 'Univers modifié avec succès'}, status=status.HTTP_200_OK)
@@ -145,7 +165,9 @@ class UniversModifView(APIView):
             error_response = {
                 'error': str(e)
             }
-            return Response(error_response, status=status.HTTP_400_BAD_REQUEST)        
+            return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
+
+
         
 
 class UniversSuppView(APIView):
@@ -157,6 +179,8 @@ class UniversSuppView(APIView):
                 with connection.cursor() as cursor:
                     cursor.execute("DELETE FROM univers WHERE id = %s AND id_utilisateur = %s",
                                    [univers_id, utilisateur_id])
+
+                print("DELETE FROM univers WHERE id = %s AND id_utilisateur = %s" % (univers_id, utilisateur_id))
 
                 if cursor.rowcount > 0:
                     return Response({'message': 'Univers supprimé avec succès'}, status=status.HTTP_200_OK)

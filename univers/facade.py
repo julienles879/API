@@ -40,6 +40,11 @@ class UniversFacade:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
 
             if utilisateur_id is not None:
+                if UniversFacade.univers_exists(name, utilisateur_id):
+                    error_response = {
+                        'error': f"L'univers '{name}' a déjà été créé par cet utilisateur."
+                    }
+                    return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
                 description = UniversFacade.generate_univers_description(name)
                 summary = UniversFacade.generate_summary(name, description)
                 imagePathUrl = UniversFacade.generate_and_save_image(name, summary)
@@ -140,3 +145,10 @@ class UniversFacade:
         except Exception as e:
             raise e
         
+
+    @staticmethod
+    def univers_exists(name, utilisateur_id):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM univers WHERE name = %s AND id_utilisateur = %s", [name, utilisateur_id])
+            count = cursor.fetchone()[0]
+            return count > 0

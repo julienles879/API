@@ -4,6 +4,7 @@ from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
 
+from api.database import *
 from api.utils import *
 
 

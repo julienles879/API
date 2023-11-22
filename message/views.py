@@ -15,7 +15,7 @@ class MessageCreationView(APIView):
             if utilisateur_id is not None:
                 data = request.data
 
-                date_time = data.get('date_time')
+                date_time = data.get('date_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 text = data.get('text')
                 id_conversation = data.get('id_conversation')
 
@@ -162,22 +162,25 @@ class RepondreAuDernierMessageView(APIView):
                         personnage_id = result[0]
                         univers_id = result[1]
                         print('result: ', result)
-                        
+                        print("SELECT id, id_personnage, id_univers FROM conversation WHERE id = %s", [id_conversation])
+
                         # Récupérez le nom et la description du personnage
                         cursor.execute("SELECT name, description FROM personnage WHERE id = %s", [personnage_id])
                         result = cursor.fetchone()
                         personnage_name = result[0]
                         personnage_description = result[1]
                         print('result: ', result)
+                        print("SELECT name, description FROM personnage WHERE id = %s", [personnage_id])
+
 
                         # Récupérez le nom de l'univers
                         cursor.execute("SELECT name FROM univers WHERE id = %s", [univers_id])
                         result = cursor.fetchone()
                         univers_name = result[0]
-                        print('result: ', result)
-
+                        
+                        print("SELECT name FROM univers WHERE id = %s", [univers_id])
                         message_assistant = f"In the context of a role-playing game, the AI becomes the character {personnage_name} from the universe {univers_name} and responds to the human.\n\nHere is the description of the character {personnage_description}:\n---\n{dernier_message_text}"
-
+                        
                         print('message : ',message_assistant)
                         # Utiliser OpenAI pour générer une réponse basée sur la conversation
                         response = openai.chat.completions.create(
