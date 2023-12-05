@@ -39,10 +39,13 @@ Executer la commande suivante
  - Installer le pipenv
    
 Maintenant, ce rendre dans le projet avec la commande :
+
 > cd api
+
 > pipenv install
 
- - Installer les dépendances 
+ - Installer les dépendances
+   
 > pip install -r requirements.txt
 
  - Mise en place de l'environnement
@@ -67,6 +70,7 @@ SD_API_KEY=clé_secrete_stable_diffusion
 Revenir à la racine du projet (ou se trouve le fichier manage.py)
 
 > pipenv shell
+
 > py manage.py runserver
 
 4. Utilisation
