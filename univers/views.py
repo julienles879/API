@@ -22,15 +22,20 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
-# Votre code de vue avec l'utilisation de UniversFacade
+# Votre code de vue avec l'utilisation de UniversFacade.
 class UniversCreationView(APIView):
+
+    # Fait appel à la vue creation_univers de la l'univers facade
     def post(self, request):
         name = json.loads(request.body.decode('utf-8')).get('name')
         response = UniversFacade.create_univers(request, name)
         return response
  
  
+ # Vue qui gére l'affichage des univers.
 class UniversListeView(APIView):
+
+    # Vue get qui gére l'affichage en liste des univers.
     def get(self, request):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
@@ -68,7 +73,11 @@ class UniversListeView(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
+
+ # Vue qui gére l'affichage en détails des univers.
 class UniversDetailView(APIView):
+
+    # Vue get qui affiche en détail d'un univers
     def get(self, request, univers_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -109,7 +118,10 @@ class UniversDetailView(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)        
         
 
+# Vue qui gère la modification d'un univers
 class UniversModifView(APIView):
+
+    # Vue put permet de modifier un univers
     def put(self, request, univers_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -119,29 +131,23 @@ class UniversModifView(APIView):
                 name = data.get('name')
 
                 with connection.cursor() as cursor:
-                    # Vérifier si le nom a été modifié
                     cursor.execute("SELECT name FROM univers WHERE id = %s", [univers_id])
                     result = cursor.fetchone()
                     if result and result[0] != name:
-                        # Si le nom a été modifié, autoriser la modification
                         cursor.execute("UPDATE univers SET name = %s WHERE id = %s AND id_utilisateur = %s",
                                        [name, univers_id, utilisateur_id])
 
-                        # Générer une nouvelle description
                         new_description = UniversFacade.generate_univers_description(name)
 
-                        # Générer une nouvelle image
                         new_summary = UniversFacade.generate_summary(name, new_description)
                         new_image_path = UniversFacade.generate_and_save_image(name, new_summary)
 
-                        # Mettre à jour l'imagePathUrl dans la base de données
                         cursor.execute("UPDATE univers SET description = %s, imagePathUrl = %s WHERE id = %s AND id_utilisateur = %s",
                                        [new_description, new_image_path, univers_id, utilisateur_id])
 
                         UniversFacade.image_generation_success(new_image_path)
 
                     else:
-                        # Si le nom n'a pas été modifié, ne rien faire
                         pass
 
                 if cursor.rowcount > 0:
@@ -169,8 +175,9 @@ class UniversModifView(APIView):
 
 
         
-
+# Vue qui supprime un utilisateur
 class UniversSuppView(APIView):
+    #Vue qui permet de supprimer un univers
     def delete(self, request, univers_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])

@@ -1,10 +1,11 @@
 import pymysql
 import environ
 
-
 env = environ.Env()
 environ.Env.read_env()
 
+
+# Singleton de connexion à la BDD
 class DatabaseConnexion:
 
     _instance = None
@@ -26,3 +27,5 @@ class DatabaseConnexion:
         cursor.execute(query, params)
         self.connection.commit()
         return cursor
+
+

@@ -3,6 +3,7 @@ from django.urls import path
 
 from .views import *
 
+# Routage de l'application personnages
 urlpatterns = [
     path('univers/<int:univers_id>/personnage/creation', PersonnageCreationView.as_view(), name='creation-personnage'),
     path('univers/<int:univers_id>/liste', PersonnageListeView.as_view(), name='liste-personnage'),

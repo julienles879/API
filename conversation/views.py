@@ -4,13 +4,12 @@ from rest_framework import status
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from django.db import connection
 from api.utils import *
+from openai import OpenAI
 
 
 import openai
-import os
 import environ 
-
-from openai import OpenAI
+import os
 
 
 env = environ.Env()
@@ -21,8 +20,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 
-
+#Vue qui permet de créer une conversation avec un personnage
 class ConversationCreationView(APIView):
+
+    # Vue qui permet de créer une conversation  d'un personnage d'un univers
     def post(self, request):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -66,7 +67,11 @@ class ConversationCreationView(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
+
+# Vue qui permet de lister les conversations d'un untilisateur
 class ConversationListeView(APIView):
+
+    # Vue get qui permet de lister les conversation
     def get(self, request):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -111,7 +116,10 @@ class ConversationListeView(APIView):
         
 
 
+# Vue qui permet de supprimer une conversation
 class ConversationSuppView(APIView):
+
+    # Vue delete qui permet de supprimer une conversation
     def delete(self, request, conversation_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -147,7 +155,10 @@ class ConversationSuppView(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
         
 
+# Vue qui permet d'afficher les détails d'une conversation
 class ConversationDetailView(APIView):
+
+    #Vue get qui permet d'afficher les détails d'une conversation d'un utilisateur
     def get(self, request, conversation_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])

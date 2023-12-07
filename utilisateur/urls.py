@@ -3,6 +3,8 @@ from django.urls import path
 
 from .views import *
 
+
+# Routage de l'application utilisateur.
 urlpatterns = [
     path('liste', UtilisateurListeView.as_view(), name='liste-utilisateur'),
     path('<int:utilisateur_id>', UtilisateurDetailView.as_view(), name='detail-utilisateur'),

@@ -19,8 +19,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
+
+# Facade qui permet de gérer la création d'un personnage
 class PersonnageFacade:
     
+    # Vue qui permet de créer un personnage.
+    # Cette vue appelle aussi les vue de génération de description, résumé et d'image.
     @staticmethod
     def create_personnage(request, univers_id, name):
         try:
@@ -54,6 +58,7 @@ class PersonnageFacade:
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
+     # Vue qui permet de générer une description grace a chat gpt
     @staticmethod
     def generate_character_description(character_name):
         response = openai.chat.completions.create(
@@ -67,6 +72,8 @@ class PersonnageFacade:
 
         return description
 
+
+     # Vue qui permet de générer un résumé grace à la description grace a chat gpt
     @staticmethod
     def generate_summary(name, description):
         response = openai.chat.completions.create(
@@ -80,6 +87,8 @@ class PersonnageFacade:
 
         return summary
 
+
+    # Vue qui permet de générer une image à l'aide du résumé grace à stable diffusion
     @staticmethod
     def generate_and_save_image(name, summary):
         try:
@@ -103,6 +112,7 @@ class PersonnageFacade:
         except Exception as e:
             raise e
 
+    # Vue qui permet d'ajouter un personnage en bdd
     @staticmethod
     def save_personnage_to_database(name, description, imagePathUrl, univers_id):
         try:

@@ -3,6 +3,8 @@ from django.urls import path
 
 from .views import *
 
+
+# Routage de l'application univers
 urlpatterns = [
     path('creation', UniversCreationView.as_view(), name='creation-univers'),
     path('liste', UniversListeView.as_view(), name='liste-univers'),

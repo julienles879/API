@@ -3,6 +3,8 @@ from django.urls import path
 
 from .views import *
 
+
+# Routage de l'application conversation
 urlpatterns = [
     path('creation/', ConversationCreationView.as_view(), name='creation-conversation'),
     path('liste/', ConversationListeView.as_view(), name='liste-conversation'),

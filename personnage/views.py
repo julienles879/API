@@ -22,14 +22,20 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 clipdrop_api_key= os.getenv("SD_API_KEY")
 
 
+# vue qui gére la création d'un univers
 class PersonnageCreationView(APIView):
+
+    #Vue qui appelle la Facade de la création d'un personnage
     def post(self, request, univers_id):
         name = json.loads(request.body.decode('utf-8')).get('name')
         response = PersonnageFacade.create_personnage(request, univers_id, name)
         return response
 
 
+# Vue qui permet de lister les personnages
 class PersonnageListeView(APIView):
+
+    # Vue get qui permet d'afficher les personnages en liste
     def get(self, request, univers_id):
         try:
 
@@ -71,7 +77,9 @@ class PersonnageListeView(APIView):
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
         
+# Vue qui permet de modifier un personnage
 class PersonnageModifView(APIView):
+    # Vue put qui permet de modifier un personnage
     def put(self, request, univers_id, personnage_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])
@@ -132,8 +140,10 @@ class PersonnageModifView(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+# Vue qui permet de supprimer un personnage
 class PersonnageSuppView(APIView):
+
+    # Vue delete qui permet de supprimer un personnage
     def delete(self, request, univers_id, personnage_id):
         try:
             utilisateur_id, username = validate_jwt_token(request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1])

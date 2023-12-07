@@ -12,7 +12,10 @@ from api.utils import *
 db_connexion = DatabaseConnexion()
 
 
+# Vue qui gére l'affichage des utilisateurs en liste.
 class UtilisateurListeView(APIView):
+
+    # Vue get pour lister les utilisateurs.
     def get(self, request):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
@@ -63,7 +66,10 @@ class UtilisateurListeView(APIView):
 
 
 
+# Vue qui gére l'affichage de chaque utilisateurs en détail.
 class UtilisateurDetailView(APIView):
+
+    # Vue get qui affiche les détails d'un utilisateur.
     def get(self, request, utilisateur_id):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
@@ -103,7 +109,11 @@ class UtilisateurDetailView(APIView):
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+# Vue qui permet de modifier un utilisateur.
 class UtilisateurModificationView(APIView):
+
+    # Vue post qui modifie l'utilisateur.
     def put(self, request, utilisateur_id):
         try:
             token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]

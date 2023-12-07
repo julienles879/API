@@ -1,18 +1,18 @@
+import os
+from decouple import Config
+import jwt
 import environ
 
 env = environ.Env()
 environ.Env.read_env()
 
-from datetime import datetime
-from decouple import Config
-import os
-import jwt
-
 current_directory = os.path.dirname(os.path.abspath(__file__))
 env_file_path = os.path.join(current_directory, '.env')
 
-config = Config(env_file_path)  
+config = Config(env_file_path)
 
+
+# Vue qui génère le token
 def generate_jwt_token(utilisateur_id, username):
     secret_key = config('SECRET_KEY')
 
@@ -23,6 +23,8 @@ def generate_jwt_token(utilisateur_id, username):
     token = jwt.encode(payload, secret_key, algorithm='HS256')
     return token
 
+
+# Vue qui valide le token
 def validate_jwt_token(token):
     try:
         secret_key = config('SECRET_KEY')
@@ -38,4 +40,3 @@ def validate_jwt_token(token):
         return None
     except jwt.DecodeError:
         return None
-

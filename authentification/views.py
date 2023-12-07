@@ -3,13 +3,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.db import connection
-
 import json
-from api.utils import *
+from api.utils import generate_jwt_token  # Import only what is needed
 
 
-
+# Class de Vue qui permet la création d'un utilisateur
 class UtilisateurCreationView(APIView):
+
+    # Vue post qui créer l'utilisateur, avec une requete SQL et génére un token
     def post(self, request):
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -19,8 +20,10 @@ class UtilisateurCreationView(APIView):
             email = data.get('email')
 
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO utilisateur (username, password, email) VALUES (%s, %s, %s)",
-                               [username, make_password(password), email])
+                cursor.execute(
+                    "INSERT INTO utilisateur (username, password, email) VALUES (%s, %s, %s)",
+                    [username, make_password(password), email]
+                )
 
                 utilisateur_id = cursor.lastrowid
 
@@ -38,11 +41,12 @@ class UtilisateurCreationView(APIView):
                 'error': str(e)
             }
             return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
-        
-
 
 
 class UtilisateurConnexionView(APIView):
+
+
+    # Vue pos qui connecte un utilisateur avec une requete sql et vérifie la validité du token
     def post(self, request):
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -51,7 +55,10 @@ class UtilisateurConnexionView(APIView):
             password = data.get('password')
 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT id, password FROM utilisateur WHERE username = %s", [username])
+                cursor.execute(
+                    "SELECT id, password FROM utilisateur WHERE username = %s",
+                    [username]
+                )
                 result = cursor.fetchone()
 
                 if result and check_password(password, result[1]):
