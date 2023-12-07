@@ -74,9 +74,11 @@ Revenir à la racine du projet (ou se trouve le fichier manage.py)
 Cette commande peut vous changer de dossier et vous sortir du dossier dans lequel vous vous trouvez.
 Dans ce cas, vous devez retourner dans le dossier racine, c'est à dire le dossier qui contient le fichier manage.py
 
-> cd .. (pour aller dans le dossier parent)
+> cd ..
+(pour aller dans le dossier parent)
 
-> cd nom_du_dossier (pour aller dans le dossier enfant)
+> cd nom_du_dossier
+(pour aller dans le dossier enfant)
 
 > py manage.py runserver
 
