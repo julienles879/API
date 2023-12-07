@@ -1,6 +1,6 @@
-Projet API
+# Projet API
 
-Sommaire 
+# Sommaire 
 
 1. Pré-requis
   - Langage et version
@@ -16,7 +16,7 @@ Sommaire
 4. Utilisation
 
 
-1. Pré-requis
+# 1. Pré-requis
 
   - Langage et version :
 python 3.11.2
@@ -28,7 +28,7 @@ pipenv 2022.9.8
  - Moteur de base de donnée
 MySQL 8.0.31
 
-2.Installation
+# 2.Installation
 
  - Cloner le projet GitHub
 
@@ -52,7 +52,8 @@ Maintenant, ce rendre dans le projet avec la commande :
    
 Ce rendre dans le sous-dossier api et créer ici un fichier .env 
 
-# exemple de fichier .env
+Exemple de fichier .env :
+
 SECRET_KEY=votre_clé_secrete
 
 DATABASES_ENGINE=django.db.backends.mysql
@@ -65,7 +66,7 @@ DATABASES_PORT=3306
 OPENAI_API_KEY=clé_secrete_api
 SD_API_KEY=clé_secrete_stable_diffusion
 
-3. Lancement
+# 3. Lancement
 
 Revenir à la racine du projet (ou se trouve le fichier manage.py)
 
@@ -82,7 +83,7 @@ Dans ce cas, vous devez retourner dans le dossier racine, c'est à dire le dossi
 
 > py manage.py runserver
 
-4. Utilisation
+# 4. Utilisation
 
 - Ouvrir Postman
 - Importer le fichier API.postman_collection.json
