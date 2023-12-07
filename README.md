@@ -84,3 +84,9 @@ Dans ce cas, vous devez retourner dans le dossier racine, c'est à dire le dossi
 
 4. Utilisation
 
+- Ouvrir Postman
+- Importer le fichier API.postman_collection.json
+    File > import
+- La collection est importer
+
+Vous pouvez maintenant utiliser l'API
